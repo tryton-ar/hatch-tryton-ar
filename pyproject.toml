@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hatch-tryton-ar"
+version = "0.1.0"
+description = "Hatch plugin to dynamically map tryton-ar dependencies to GitHub repositories"
+readme = 'README.rst'
+license = 'MIT'
+license-files = ['LICENSE', 'COPYRIGHT']
+keywords = ["tryton-ar", "hatch"]
+requires-python = ">=3.10"
+dependencies = [
+    "hatchling>=1.0.0",
+    "hatch-tryton",
+]
+authors = [
+    {name = "Luciano Rossi", email = "lukio@gcoop.coop"},
+    ]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Plugins",
+    "Framework :: Hatch",
+    "Framework :: Tryton",
+    "Topic :: System :: Archiving :: Packaging",
+    ]
+
+[tool.hatch.version]
+path = 'hatch_tryton_ar/__init__.py'
+
+[tool.hatch.build]
+packages = ['hatch_tryton_ar']
