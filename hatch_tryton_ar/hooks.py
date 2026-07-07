@@ -19,7 +19,7 @@ class TrytonArGitMappingHook(MetadataHookInterface):
                 # Extraemos el nombre del módulo limpio (ej: trytonar_party_ar -> party_ar)
                 module_name = dep.split()[0].replace('trytonar_', '')
                 # Reemplazamos por la URL de Git apuntando al branch correcto
-                new_deps.append(f"trytonar_{module_name} @ git+git://github.com/tryton-ar/{module_name}.git@{branch}")
+                new_deps.append(f"trytonar_{module_name} @ git+https://github.com/tryton-ar/{module_name}.git@{branch}")
             else:
                 new_deps.append(dep)
 
