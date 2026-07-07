@@ -26,6 +26,9 @@ classifiers = [
     "Topic :: System :: Archiving :: Packaging",
     ]
 
+[project.entry-points.hatch]
+tryton-ar = "hatch_tryton_ar.hooks"
+
 [tool.hatch.version]
 path = 'hatch_tryton_ar/__init__.py'
 
