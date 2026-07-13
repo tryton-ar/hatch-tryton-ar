@@ -1,29 +1,59 @@
 # This file is part of hatch-tryton-ar.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 
+from typing import Dict, Tuple
+
 from hatchling.metadata.plugin.interface import MetadataHookInterface
 from hatchling.plugin import hookimpl
+
 
 class TrytonArGitMappingHook(MetadataHookInterface):
     PLUGIN_NAME = 'tryton-ar'
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._external_repos: Dict[str, Tuple[str, str]] = {}
+        raw = self.config.get('external-repos', {})
+        for key, value in raw.items():
+            parts = value.split('/')
+            if len(parts) != 2:
+                raise ValueError(
+                    f"[tool.hatch.metadata.hooks.tryton-ar.external-repos]"
+                    f"\nKey '{key}' must be formatted as 'org/repo', got: '{value}'"
+                )
+            org, repo = parts
+            if not org or not repo:
+                raise ValueError(
+                    f"[tool.hatch.metadata.hooks.tryton-ar.external-repos]"
+                    f"\nKey '{key}': 'org/repo' values cannot be empty"
+                )
+            self._external_repos[key] = (org, repo)
+
+    def _resolve_git_url(self, module_name: str, branch: str) -> str:
+        """Resuelve la URL de Git para un módulo dado."""
+        if module_name in self._external_repos:
+            org, repo = self._external_repos[module_name]
+            return f"git+https://github.com/{org}/{repo}.git@{branch}"
+        return f"git+https://github.com/tryton-ar/{module_name}.git@{branch}"
+
     def update(self, metadata):
         version = metadata.get('version', '8.0.0')
-        branch = '.'.join(version.split('.')[:2]) # "8.0"
+        branch = '.'.join(version.split('.')[:2])  # "8.0"
 
         dependencies = metadata.get('dependencies', [])
         new_deps = []
 
         for dep in dependencies:
             if dep.startswith('trytonar_'):
-                # Extraemos el nombre del módulo limpio (ej: trytonar_party_ar -> party_ar)
                 module_name = dep.split()[0].replace('trytonar_', '')
-                # Reemplazamos por la URL de Git apuntando al branch correcto
-                new_deps.append(f"trytonar_{module_name} @ git+https://github.com/tryton-ar/{module_name}.git@{branch}")
+                url = self._resolve_git_url(module_name, branch)
+                # URL dependencies (PEP 508 @ notation) don't use version specifiers
+                new_deps.append(f"trytonar_{module_name} @ {url}")
             else:
                 new_deps.append(dep)
 
         metadata['dependencies'] = new_deps
+
 
 # Registramos el Hook en el gestor de plugins de Hatch
 @hookimpl

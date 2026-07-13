@@ -1,4 +1,4 @@
 # This file is part of hatch-tryton-ar.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 
-__version__ = '0.1.1'
+__version__ = '0.2.0'
