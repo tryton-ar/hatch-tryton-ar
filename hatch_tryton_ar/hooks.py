@@ -36,23 +36,31 @@ class TrytonArGitMappingHook(MetadataHookInterface):
             return f"git+https://github.com/{org}/{repo}.git@{branch}"
         return f"git+https://github.com/tryton-ar/{module_name}.git@{branch}"
 
+    def _process_dep(self, dep: str, branch: str) -> str:
+        """Transform a dependency to git URL if it's an external repo."""
+        if not dep.startswith('trytonar_'):
+            return dep
+        module_name = dep.split()[0].replace('trytonar_', '')
+        url = self._resolve_git_url(module_name, branch)
+        return f"trytonar_{module_name} @ {url}"
+
     def update(self, metadata):
         version = metadata.get('version', '8.0.0')
         branch = '.'.join(version.split('.')[:2])  # "8.0"
 
+        # Process regular dependencies
         dependencies = metadata.get('dependencies', [])
-        new_deps = []
-
-        for dep in dependencies:
-            if dep.startswith('trytonar_'):
-                module_name = dep.split()[0].replace('trytonar_', '')
-                url = self._resolve_git_url(module_name, branch)
-                # URL dependencies (PEP 508 @ notation) don't use version specifiers
-                new_deps.append(f"trytonar_{module_name} @ {url}")
-            else:
-                new_deps.append(dep)
-
+        new_deps = [self._process_dep(dep, branch) for dep in dependencies]
         metadata['dependencies'] = new_deps
+
+        # Process optional-dependencies (extras_depend from tryton.cfg)
+        optional_deps = metadata.get('optional-dependencies', {})
+        if not optional_deps:
+            return
+        for section_name, section_deps in optional_deps.items():
+            if isinstance(section_deps, list):
+                processed = [self._process_dep(dep, branch) for dep in section_deps]
+                optional_deps[section_name] = processed
 
 
 # Registramos el Hook en el gestor de plugins de Hatch
