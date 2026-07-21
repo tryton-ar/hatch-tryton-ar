@@ -75,7 +75,7 @@ class TrytonArGitMappingHook(MetadataHookInterface):
 
         # 2. Deps con prefijo externo (nantic_, gcoop_, etc.) → resuelve con repos
         if '_' in pkg_name:
-            prefix, module_name = pkg_name.rsplit('_', 1)
+            prefix, module_name = pkg_name.split('_', 1)
             if prefix != 'trytond' and module_name in self._repos:
                 url = self._resolve_external_repo_url(module_name, branch)
                 if url:
